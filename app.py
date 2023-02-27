@@ -6,7 +6,6 @@ app = Flask(__name__)
 ia = imdb.IMDb()
 
 def getMovieDict(movie):
-    print(movie)
 
     movie_dict = {
     'title': movie.get('title'),
@@ -19,10 +18,19 @@ def getMovieDict(movie):
     'writers': [writer.get('name') for writer in movie.get('writers')]
     }
 
-    print(movie_dict)
     return movie_dict
 
-def getjsonmovie(moviestr):
+def getPopDict(movie):
+
+    pop_dict = {
+    'title': movie.get('title'),
+    'year': movie.get('year')
+    }
+
+    return pop_dict
+
+
+def getJsonMovie(moviestr):
     results = ia.search_movie(moviestr)
     movie_id = results[0].getID()
     movie = ia.get_movie(movie_id)
@@ -31,13 +39,12 @@ def getjsonmovie(moviestr):
 
 def getPopularMovies():
     pop = ia.get_popular100_movies()
+
     pop_list = []
 
     for movie in pop:
-        print(movie)
-        movie_dict = getMovieDict(movie)
-        print(movie_dict)
-        pop_list.append(movie_dict)
+        pop_dict = getPopDict(movie)
+        pop_list.append(pop_dict)
 
     return json.dumps(pop_list)
 
@@ -50,7 +57,7 @@ def home():
 @app.route("/movies" , methods=['GET'])
 def get():
     movie_name = request.args.get('movie')
-    movie_dict = getjsonmovie(movie_name)
+    movie_dict = getJsonMovie(movie_name)
     return json.dumps(movie_dict)
 
 @app.route("/movies/popular100", methods=['GET'])
