@@ -20,7 +20,7 @@ def getMovieDict(movie):
 
     return movie_dict
 
-def getPopDict(movie):
+def getTopDict(movie):
 
     pop_dict = {
     'title': movie.get('title'),
@@ -41,12 +41,21 @@ def getPopularMovies():
     pop = ia.get_popular100_movies()
 
     pop_list = []
-
     for movie in pop:
-        pop_dict = getPopDict(movie)
+        pop_dict = getTopDict(movie)
         pop_list.append(pop_dict)
 
     return json.dumps(pop_list)
+
+def getTop250():
+    top = ia.get_top250_movies()
+
+    top_mov = []
+    for movie in top:
+        top_dict = getTopDict(movie)
+        top_mov.append(top_dict)
+    
+    return json.dumps(top_mov)
 
 
 
@@ -63,6 +72,10 @@ def get():
 @app.route("/movies/popular100", methods=['GET'])
 def top():
     return getPopularMovies()
+
+@app.route("/movies/top250", methods=['GET'])
+def top250():
+    return getTop250()
 
 
 if __name__ == '__main__':
