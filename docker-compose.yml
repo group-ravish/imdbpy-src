@@ -1,0 +1,14 @@
+version: '2'
+services:
+  imdbpy:
+    image: imdbpy
+    #container_name: imdbpy
+    restart: always
+    expose:
+     - 5000
+  openresty:
+    image: openresty
+    #container_name: openresty
+    restart: always
+    ports: 
+     - 8080:8080
