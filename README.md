@@ -1,2 +1,2 @@
 # MyIMDb
-To add my work on the IMDbpy project
+To add my backend work on the IMDbpy project
