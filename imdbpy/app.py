@@ -4,6 +4,11 @@ import imdb, json
 app = Flask(__name__)
 
 ia = imdb.IMDb()
+TOP_250 = 0
+BOTTOM_100 = 1
+POPULAR_100 = 2
+TOP_250_INDIAN = 3
+TOP_TV = 4 
 
 def getMovieDict(movie):
 
@@ -30,15 +35,20 @@ def getTopDict(movie):
 
     return pop_dict
 
-def getRating(movie):
 
-    rating_dict = {
-        'rating': movie.get('rating'),
-        'cast': [actor.get('name') for actor in movie.get('cast')[:3]],
-    }   
-
-    return rating_dict
-
+def getMovieList(type):
+    if type == TOP_250:
+        return ia.get_top250_movies()
+    elif type == BOTTOM_100:
+        return ia.get_bottom100_movies()
+    elif type == POPULAR_100:
+        return ia.get_popular100_movies()
+    elif type == TOP_250_INDIAN:
+        return ia.get_top250_indian_movies()
+    elif type == TOP_TV:
+        return ia.get_top250_tv()
+    
+    return None
 
 
 def getJsonMovie(moviestr):
@@ -48,46 +58,74 @@ def getJsonMovie(moviestr):
 
     return getMovieDict(movie)
 
+def getMovie(moviestr):
+    results = ia.search_movie(moviestr)
+    movie_id = results[0].getID()
+    movie = ia.get_movie(movie_id)
 
-def getPopularMovies():
-    pop = ia.get_popular100_movies()
+    return movie
 
-    pop_list = []
-    for movie in pop:
-        pop_dict = getTopDict(movie)
-        pop_list.append(pop_dict)
+def getJsonMovieList(list,rating):
+    movie_list = []
+    for movie in list:
+        movie_dict = getTopDict(movie)
+        if rating == '' or movie_dict['rating'] >= float(rating):
+            movie_list.append(movie_dict)
 
-    return json.dumps(pop_list, indent=4, separators=(',', ':'))
+    return json.dumps(movie_list, indent=4, separators=(',', ':'))
 
+
+
+def getPopularMovies(rating):
+    return getJsonMovieList(getMovieList(POPULAR_100),rating)
 
 def getTop250():
-    top = ia.get_top250_movies()
+    return getTop250('')
 
-    top_mov = []
-    for movie in top:
-        top_dict = getTopDict(movie)
-        top_mov.append(top_dict)
-    
-    return json.dumps(top_mov, indent=4, separators=(',', ':'))
+def getTop250(rating):
+    return getJsonMovieList(getMovieList(TOP_250),rating)
 
+def getBottom100():
+    return getJsonMovieList(getMovieList(BOTTOM_100),'')
 
-def getActorRating(moviestr):
-    movies = ia.search_movie(moviestr)
-    movie = movies[0]
-    ia.update(movie)
+def getTop250Indian(rating):
+    return getJsonMovieList(getMovieList(TOP_250_INDIAN),rating)
 
-    return getRating(movie)
+def getTopTV(rating):
+    return getJsonMovieList(getMovieList(TOP_TV),rating)
 
 
 @app.route("/")
 def home():
     return ('Welcome to my favorite movies list!')
 
-@app.route("/movies" , methods=['GET'])
-def get():
-    movie_name = request.args.get('movie')
-    movie_dict = getJsonMovie(movie_name)
+@app.route("/movies/<movie>" , methods=['GET'])
+def get(movie):
+    # movie_name = request.args.get('movie')
+    movie_dict = getJsonMovie(movie)
     return json.dumps(movie_dict, indent=4, separators=(',', ':'))
+
+@app.route("/rating/top250/<rating>", methods=['GET'])
+def get_rating(rating):
+    return getTop250(rating)
+
+@app.route("/rating/pop100/<rating>", methods=['GET'])
+def get_pop_rating(rating):
+    return getPopularMovies(rating)
+
+@app.route("/rating/ind250/<rating>", methods=['GET'])
+def get_ind_rating(rating):
+    return getTop250Indian(rating)
+
+@app.route("/rating/toptv/<rating>", methods=['GET'])
+def get_tv_rating(rating):
+    return getTopTV(rating)
+
+@app.route("/movies/cast" , methods=['GET'])
+def cast():
+    movie_name = request.args.get('movie')
+    rating_dict = getJsonMovie(movie_name)
+    return json.dumps(rating_dict, indent=4, separators=(',', ':'))
 
 @app.route("/movies/popular100", methods=['GET'])
 def top():
@@ -95,13 +133,19 @@ def top():
 
 @app.route("/movies/top250", methods=['GET'])
 def top250():
-    return getTop250()
+    return getTop250('')
 
-@app.route("/movies/cast" , methods=['GET'])
-def cast():
-    movie_name = request.args.get('movie')
-    rating_dict = getJsonMovie(movie_name)
-    return json.dumps(rating_dict, indent=4, separators=(',', ':'))
+@app.route("/movies/bottom100", methods=['GET'])
+def bottom100():
+    return getBottom100()
+
+@app.route("/movies/ind250", methods=['GET'])
+def indian250():
+    return getTop250Indian()
+
+@app.route("/movies/toptv", methods=['GET'])
+def top250TV():
+    return getTopTV()
 
 
 if __name__ == '__main__':
