@@ -129,7 +129,7 @@ def cast():
 
 @app.route("/movies/popular100", methods=['GET'])
 def top():
-    return getPopularMovies()
+    return getPopularMovies('')
 
 @app.route("/movies/top250", methods=['GET'])
 def top250():
@@ -137,15 +137,15 @@ def top250():
 
 @app.route("/movies/bottom100", methods=['GET'])
 def bottom100():
-    return getBottom100()
+    return getBottom100('')
 
 @app.route("/movies/ind250", methods=['GET'])
 def indian250():
-    return getTop250Indian()
+    return getTop250Indian('')
 
 @app.route("/movies/toptv", methods=['GET'])
 def top250TV():
-    return getTopTV()
+    return getTopTV('')
 
 
 if __name__ == '__main__':
