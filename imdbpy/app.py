@@ -19,11 +19,20 @@ def getMovieDict(movie):
         'plot outline': movie.get('plot outline'),
         'genres': movie.get('genres'),
         'cast': [actor.get('name') for actor in movie.get('cast')],
-        'directors': [director.get('name') for director in movie.get('directors')],
+        'directors': getDirectorList(movie),
         'writers': [writer.get('name') for writer in movie.get('writers')]
     }
 
     return movie_dict
+
+def getDirectorList(movie):
+    directorNames = []
+    if movie.get('directors') == None:
+        return directorNames
+    for director in movie.get('directors'):
+        directorNames.append(director.get('name'))
+
+    return directorNames
 
 def getTopDict(movie):
 
@@ -56,14 +65,19 @@ def getJsonMovie(moviestr):
     movie_id = results[0].getID()
     movie = ia.get_movie(movie_id)
 
-    return getMovieDict(movie)
+    return getTopDict(movie)
 
 def getMovie(moviestr):
+    movie_list = []
     results = ia.search_movie(moviestr)
-    movie_id = results[0].getID()
-    movie = ia.get_movie(movie_id)
-
-    return movie
+    length = len(results)
+    for i in range(length-1):
+        movie_id = results[i].getID()
+        #print('RESULT OF I: ', results[i])
+        #movie = ia.get_movie(movie_id)
+        movie_list.append(getTopDict(results[i]))
+        print (results[i])
+    return movie_list
 
 def getJsonMovieList(list,rating):
     movie_list = []
@@ -85,8 +99,8 @@ def getTop250():
 def getTop250(rating):
     return getJsonMovieList(getMovieList(TOP_250),rating)
 
-def getBottom100():
-    return getJsonMovieList(getMovieList(BOTTOM_100),'')
+def getBottom100(rating):
+    return getJsonMovieList(getMovieList(BOTTOM_100),rating)
 
 def getTop250Indian(rating):
     return getJsonMovieList(getMovieList(TOP_250_INDIAN),rating)
@@ -102,7 +116,7 @@ def home():
 @app.route("/movies/<movie>" , methods=['GET'])
 def get(movie):
     # movie_name = request.args.get('movie')
-    movie_dict = getJsonMovie(movie)
+    movie_dict = getMovie(movie)
     return json.dumps(movie_dict, indent=4, separators=(',', ':'))
 
 @app.route("/rating/top250/<rating>", methods=['GET'])
