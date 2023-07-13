@@ -1,7 +1,9 @@
 from flask import Flask, request
 import imdb, json
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
 
 ia = imdb.IMDb()
 TOP_250 = 0
@@ -72,11 +74,9 @@ def getMovie(moviestr):
     results = ia.search_movie(moviestr)
     length = len(results)
     for i in range(length-1):
-        movie_id = results[i].getID()
-        #print('RESULT OF I: ', results[i])
+        # movie_id = results[i].getID()
         #movie = ia.get_movie(movie_id)
         movie_list.append(getTopDict(results[i]))
-        print (results[i])
     return movie_list
 
 def getJsonMovieList(list,rating):
