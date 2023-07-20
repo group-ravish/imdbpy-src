@@ -1,2 +1,3 @@
 flask
 imdbpy
+flask-cors
