@@ -1,6 +1,11 @@
 from flask import Flask, request
 import imdb, json
+import logging
 from flask_cors import CORS
+
+logger = logging.getLogger('imdblogger')
+logger.setLevel(logging.DEBUG)
+logger.addHandler(logging.FileHandler('app.log'))
 
 app = Flask(__name__)
 CORS(app)
@@ -10,7 +15,7 @@ TOP_250 = 0
 BOTTOM_100 = 1
 POPULAR_100 = 2
 TOP_250_INDIAN = 3
-TOP_TV = 4 
+TOP_TV = 4
 
 def getMovieDict(movie):
 
@@ -49,20 +54,30 @@ def getTopDict(movie):
 
 def getMovieList(type):
     if type == TOP_250:
-        return ia.get_top250_movies()
+        top250 = ia.search_movie_advanced('matrix', results = 100)
+        logger.debug('TOP250: %s', top250)
+        return top250
     elif type == BOTTOM_100:
-        return ia.get_bottom100_movies()
+        bottom100 = ia.search_movie_advanced('avengers', results = 100)
+        logger.debug('BOTTOM100: %s', bottom100)
+        return bottom100
     elif type == POPULAR_100:
-        return ia.get_popular100_movies()
+        pop100 = ia.search_movie_advanced('america', results = 100)
+        logging.debug('POPULAR100: %s', pop100)
+        return pop100
     elif type == TOP_250_INDIAN:
-        return ia.get_top250_indian_movies()
+        ind250 = ia.search_movie_advanced('love', results = 100)
+        logging.debug('IND250: %s', ind250)
+        return ind250
     elif type == TOP_TV:
-        return ia.get_top250_tv()
-    
+        toptv = ia.search_movie_advanced('man', results = 100)
+        logging.debug('TOPTV: %s', toptv)
+        return toptv
     return None
 
 
 def getJsonMovie(moviestr):
+
     results = ia.search_movie(moviestr)
     movie_id = results[0].getID()
     movie = ia.get_movie(movie_id)
@@ -71,22 +86,53 @@ def getJsonMovie(moviestr):
 
 def getMovie(moviestr):
     movie_list = []
-    results = ia.search_movie(moviestr)
-    length = len(results)
-    for i in range(length-1):
+    movie = ia.search_movie_advanced(moviestr, results = 100)
+    # length = len(results)
+    for i in movie:
         # movie_id = results[i].getID()
-        #movie = ia.get_movie(movie_id)
-        movie_list.append(getTopDict(results[i]))
+        # movie = ia.get_movie(movie_id)
+        movie_list.append(getTopDict(i))
     return movie_list
 
 def getJsonMovieList(list,rating):
     movie_list = []
+    # print('The list and rating are: ', list, rating)
     for movie in list:
         movie_dict = getTopDict(movie)
+        # print('PRINTING MOVIE DICT: ', movie_dict)
         if rating == '' or movie_dict['rating'] >= float(rating):
             movie_list.append(movie_dict)
+            # print('PRINTING MOVIE LIST: ', movie_list)
 
     return json.dumps(movie_list, indent=4, separators=(',', ':'))
+
+def setLogLevel(loglevel):
+    loglevel = loglevel.lower()
+    if loglevel == 'debug':
+        response = 'Log level set to DEBUG'
+        logger.setLevel(logging.DEBUG)
+        return response
+    elif loglevel == 'info':
+        response = 'Log level set to INFO'
+        logger.setLevel(logging.INFO)
+        return response
+    elif loglevel == 'warning':
+        response = 'Log level set to WARNING'
+        logger.setLevel(logging.WARNING)
+        return response
+    elif loglevel == 'error':
+        response = 'Log level set to ERROR'
+        logger.setLevel(logging.ERROR)
+        return response
+    elif loglevel == 'critical':
+        response = 'Log level set to CRITICAL'
+        logger.setLevel(logging.CRITICAL)
+        return response
+    else:
+        response = 'Unsupported log level! Defaulting to INFO level!'
+        logger.error(response)
+        logger.setLevel(logging.INFO)
+        return response
 
 
 
@@ -111,13 +157,18 @@ def getTopTV(rating):
 
 @app.route("/")
 def home():
-    return ('Welcome to my favorite movies list!')
+    return ('Welcome to our MovieDB!')
 
-@app.route("/movies/<movie>" , methods=['GET'])
-def get(movie):
+@app.route("/loglevel/<loglevel>", methods=['GET'])
+def log(loglevel):
+    return setLogLevel(loglevel)
+
+@app.route("/search/<movie>" , methods=['GET'])
+def search(movie):
     # movie_name = request.args.get('movie')
     movie_dict = getMovie(movie)
     return json.dumps(movie_dict, indent=4, separators=(',', ':'))
+    # return searchMovie('')
 
 @app.route("/rating/top250/<rating>", methods=['GET'])
 def get_rating(rating):
