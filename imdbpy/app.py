@@ -46,7 +46,8 @@ def getTopDict(movie):
     pop_dict = {
         'title': movie.get('title'),
         'year': movie.get('year'),
-        'rating': movie.get('rating')
+        'rating': movie.get('rating'),
+        'url': movie.get('cover url')
     }
 
     return pop_dict
@@ -63,15 +64,15 @@ def getMovieList(type):
         return bottom100
     elif type == POPULAR_100:
         pop100 = ia.search_movie_advanced('america', results = 100)
-        logging.debug('POPULAR100: %s', pop100)
+        logger.debug('POPULAR100: %s', pop100)
         return pop100
     elif type == TOP_250_INDIAN:
         ind250 = ia.search_movie_advanced('love', results = 100)
-        logging.debug('IND250: %s', ind250)
+        logger.debug('IND250: %s', ind250)
         return ind250
     elif type == TOP_TV:
         toptv = ia.search_movie_advanced('man', results = 100)
-        logging.debug('TOPTV: %s', toptv)
+        logger.debug('TOPTV: %s', toptv)
         return toptv
     return None
 
@@ -96,13 +97,13 @@ def getMovie(moviestr):
 
 def getJsonMovieList(list,rating):
     movie_list = []
-    # print('The list and rating are: ', list, rating)
+    logger.info('The list and rating are: ', list, rating)
     for movie in list:
         movie_dict = getTopDict(movie)
-        # print('PRINTING MOVIE DICT: ', movie_dict)
+        logger.info('Movie Dict is: ', movie_dict)
         if rating == '' or movie_dict['rating'] >= float(rating):
             movie_list.append(movie_dict)
-            # print('PRINTING MOVIE LIST: ', movie_list)
+            logger.info('Movie List is: ', movie_list)
 
     return json.dumps(movie_list, indent=4, separators=(',', ':'))
 
