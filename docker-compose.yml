@@ -1,14 +1,20 @@
-version: '2'
+version: "2"
 services:
   imdbpy:
     image: guruparvesh/imdbpy
-    container_name: imdbpy
-    restart: always
-    expose:
-     - 5000
-  openresty:
-    image: guruparvesh/openresty
-    container_name: openresty
-    restart: always
-    ports: 
-     - 8080:8080
+    ports:
+      - "5001:5000"
+  frontend:
+    image: avinashp07/moviedb
+    ports:
+      - "3000:3000"
+    environment:
+      - REACT_APP_API_URL=http://127.0.0.1:5001 
+    depends_on:
+      - imdbpy
+  nginx:
+    image: openresty
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./openresty.conf:/root/usr/local/openresty/nginx/conf/nginx.conf:ro
