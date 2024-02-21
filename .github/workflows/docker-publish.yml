@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
-  build-java:
+  push-docker:
 
     runs-on: ubuntu-latest
     
